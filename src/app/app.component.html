@@ -1,0 +1,275 @@
+<!-- 
+  Attendance Calendar Application
+  Created by: Rahin Reza
+  https://github.com/rreza200
+-->
+<div class="calendar-app">
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-title">
+        <img src="logo.svg" alt="Attendance App Logo" class="app-logo">
+        <h1>Attendance Calendar <span class="signature">created by Rahin Reza and Copilot</span></h1>
+      </div>
+      <div class="username-section">
+        <span class="username-label">Attendance for:</span>
+        <div class="username-display" *ngIf="!isEditingUsername">
+          <span class="username-text">{{ userName }}</span>
+          <button class="edit-username-btn" (click)="editUsername()" title="Edit name">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="username-edit" *ngIf="isEditingUsername">
+          <input 
+            type="text" 
+            [(ngModel)]="userName" 
+            (keyup.enter)="saveUsernameAndClose()"
+            (keyup.escape)="isEditingUsername = false"
+            class="username-input"
+            maxlength="30"
+            autofocus>
+          <button class="save-username-btn" (click)="saveUsernameAndClose()" title="Save">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-content">
+    <div class="container">
+      <!-- Year Header -->
+      <div class="year-header">
+        <button class="year-nav-btn" (click)="previousYear()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <h2 class="year-title">{{ currentYear }}</h2>
+        <button class="year-nav-btn" (click)="nextYear()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+        <div class="auto-save-indicator" [class.show]="showSaveIndicator">
+          ✓ Saved
+        </div>
+      </div>
+
+      <!-- Data Management Controls -->
+      <div class="data-controls">
+        <button class="control-btn save-btn" (click)="saveAttendanceData(true)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          Save
+        </button>
+        <button class="control-btn import-btn" onclick="document.getElementById('jsonFileInput').click()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 14 12 9 7 14"></polyline>
+            <line x1="12" y1="9" x2="12" y2="21"></line>
+          </svg>
+          Import JSON
+        </button>
+        <input type="file" id="jsonFileInput" accept=".json" style="display: none" (change)="importJSON($event)">
+        <button class="control-btn export-btn" (click)="exportData()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export JSON
+        </button>
+        <button class="control-btn import-excel-btn" onclick="document.getElementById('excelFileInput').click()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+            <line x1="12" y1="12" x2="12" y2="18"></line>
+          </svg>
+          Import Excel
+        </button>
+        <input type="file" id="excelFileInput" accept=".csv,.txt" style="display: none" (change)="importExcel($event)">
+        <button class="control-btn excel-btn" (click)="exportToExcel()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="12" y1="18" x2="12" y2="12"></line>
+            <line x1="9" y1="15" x2="15" y2="15"></line>
+          </svg>
+          Export Excel
+        </button>
+      </div>
+
+      <!-- Year Statistics -->
+      <div class="stats-section">
+        <div class="stat-card present">
+          <div class="stat-number">{{ getYearStats().presentDays }}</div>
+          <div class="stat-label">Days Present</div>
+        </div>
+        <div class="stat-card absent">
+          <div class="stat-number">{{ getYearStats().absentDays }}</div>
+          <div class="stat-label">Days Absent</div>
+        </div>
+        <div class="stat-card holiday">
+          <div class="stat-number">{{ getYearStats().holidayCount }}</div>
+          <div class="stat-label">Holidays</div>
+        </div>
+        <div class="stat-card excluded">
+          <div class="stat-number">{{ getYearStats().excludedCount }}</div>
+          <div class="stat-label">Out of Office</div>
+        </div>
+        <div class="stat-card workdays">
+          <div class="stat-number">{{ getYearStats().workDays }}</div>
+          <div class="stat-label">Work Days</div>
+        </div>
+        <div class="stat-card rate">
+          <div class="stat-number">{{ getYearStats().attendanceRate.toFixed(1) }}%</div>
+          <div class="stat-label">Attendance Rate</div>
+        </div>
+      </div>
+
+      <!-- Quarterly Averages -->
+      <div class="quarterly-section">
+        <div *ngFor="let quarter of getAllQuartersSequential()" class="average-card" [ngClass]="getAverageColor(getQuarterStats(quarter, false).averagePerWeek)">
+          <ng-container *ngIf="getQuarterStats(quarter, false) as qStats">
+            <ng-container *ngIf="getQuarterStats(quarter, true) as qStatsProj">
+              <div class="average-header">
+                <h3>{{ getQuarterName(quarter) }}<span *ngIf="isCurrentQuarter(quarter)" class="current-quarter-badge-small">Current</span></h3>
+              </div>
+              <div class="average-number">{{ qStats.averagePerWeek.toFixed(2) }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.averagePerWeek.toFixed(2) }}</span></div>
+              <div class="average-label">days/wk</div>
+              <div class="quarter-info">
+                {{ qStats.presentDays }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.presentDays }}</span>/{{ qStats.totalWeekdays }} days
+              </div>
+              <ng-container *ngIf="qStats.averagePerWeek >= 2.0; else showDaysNeeded">
+                <div class="days-achieved">
+                  <span class="success-badge">✓ 2.0+ Achieved</span>
+                </div>
+              </ng-container>
+              <ng-template #showDaysNeeded>
+                <div class="days-needed" *ngIf="qStats.daysNeededForTarget > 0">
+                  <span class="target-badge">Need {{ qStats.presentDays + qStats.daysNeededForTarget }} ({{ qStats.daysNeededForTarget }}+) for 2.0+</span>
+                </div>
+              </ng-template>
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- All Months Calendar Grid (Organized by Quarter) -->
+      <div class="quarters-container">
+        <div *ngFor="let quarter of getAllQuarters(); let i = index" class="quarter-section">
+          <!-- Quarter Header with Toggle -->
+          <div class="quarter-header" (click)="toggleQuarter(quarter)">
+            <div class="quarter-title">
+              <span class="quarter-icon">{{ quarterExpanded[quarter] ? '▼' : '►' }}</span>
+              <h2>{{ getQuarterName(quarter) }}<span *ngIf="isCurrentQuarter(quarter)" class="current-quarter-badge">Current</span></h2>
+              <span class="quarter-months">({{ monthNames[quarter * 3] }} - {{ monthNames[quarter * 3 + 2] }})</span>
+            </div>
+            <div class="quarter-summary" [ngClass]="getAverageColor(getQuarterStats(quarter, false).averagePerWeek)">
+              <span class="summary-avg">{{ getQuarterStats(quarter, false).averagePerWeek.toFixed(2) }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ getQuarterStats(quarter, true).averagePerWeek.toFixed(2) }}</span> days/week</span>
+              <span class="summary-count">{{ getQuarterStats(quarter, false).presentDays }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ getQuarterStats(quarter, true).presentDays }}</span>/{{ getQuarterStats(quarter, false).totalWeekdays }}</span>
+            </div>
+          </div>
+
+          <!-- Quarter Months Grid (Collapsible) -->
+          <div class="quarter-months-grid" [class.collapsed]="!quarterExpanded[quarter]">
+            <div *ngFor="let month of getMonthsInQuarter(quarter)" class="month-container">
+              <div class="month-header">
+                <h3>{{ monthNames[month] }}</h3>
+                <span *ngIf="isCurrentMonth(month)" class="current-month-badge">Current</span>
+              </div>
+              
+              <!-- Week Days -->
+              <div class="mini-weekdays">
+                <div *ngFor="let day of weekDays" class="mini-weekday">{{ day.charAt(0) }}</div>
+              </div>
+
+              <!-- Calendar Days -->
+          <div class="mini-calendar-days">
+            <div 
+              *ngFor="let date of getCalendarDays(month)" 
+              class="mini-calendar-day"
+              [class.empty]="!date"
+              [class.weekend]="isWeekend(date)"
+              [class.holiday]="isHoliday(date)"
+              [class.excluded]="isExcluded(date)"
+              [class.disabled]="isWeekend(date)"
+              [class.today]="isToday(date)"
+              [class.marked-present]="date && isPresent(date) && !isFuture(date) && !isWeekend(date) && !isExcluded(date) && !isHoliday(date)"
+              [class.planned]="isPlanned(date) && isFuture(date)"
+              [title]="isHoliday(date) ? getHolidayName(date) : (isExcluded(date) ? 'Out of Office' : (isPlanned(date) && isFuture(date) ? 'Planned (Shift+Click)' : ''))"
+              (click)="selectDate(date, false, $event)"
+              (contextmenu)="selectDate(date, true, $event); $event.preventDefault()">
+              <span *ngIf="date" class="mini-day-number">{{ date.getDate() }}</span>
+              <span *ngIf="date" class="mini-indicator present-check">✓</span>
+              <span *ngIf="date && isExcluded(date)" class="mini-indicator excluded">💼</span>
+              <span *ngIf="date && isPlanned(date) && isFuture(date)" class="mini-indicator planned">📅</span>
+            </div>
+          </div>
+          
+          <!-- Month Statistics -->
+          <div class="month-stats">
+            <div class="month-stat-row">
+              <div class="month-stat-item">
+                <span class="stat-value">{{ getMonthStats(month).presentDays }}<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-value"> / {{ getMonthStats(month).projectedPresentDays }}</span></span>
+                <span class="stat-text">Present<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-label"> / Proj</span></span>
+              </div>
+              <div class="month-stat-divider">/</div>
+              <div class="month-stat-item">
+                <span class="stat-value">{{ getMonthStats(month).workDays }}<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-value"> / {{ getMonthStats(month).projectedWorkDays }}</span></span>
+                <span class="stat-text">Work Days</span>
+              </div>
+              <div class="month-stat-item holiday-item">
+                <span class="stat-value">{{ getMonthStats(month).projectedHolidayCount }}</span>
+                <span class="stat-text">Holidays</span>
+              </div>
+              <div class="month-stat-item excluded-item" *ngIf="getMonthStats(month).excludedCount > 0">
+                <span class="stat-value">{{ getMonthStats(month).excludedCount }}</span>
+                <span class="stat-text">OOO</span>
+              </div>
+              <div class="month-stat-item rate-item">
+                <span class="stat-value">{{ getMonthStats(month).attendanceRate.toFixed(1) }}%<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-value"> / {{ getMonthStats(month).projectedRate.toFixed(1) }}%</span></span>
+                <span class="stat-text">Rate</span>
+              </div>
+              <div class="month-stat-item average" [ngClass]="getAverageColor(getAveragePerWeek(month, false))">
+                <span class="stat-value">{{ getAveragePerWeek(month, false).toFixed(2) }}<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-value"> / {{ getAveragePerWeek(month, true).toFixed(2) }}</span></span>
+                <span class="stat-text">avg/week</span>
+              </div>
+            </div>
+          </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="instructions">
+        <p>💡 Click = Present • Right-click = OOO • <strong>Shift+Click</strong> future = Plan</p>
+        <p>✓ Present • 💼 Out of Office • 📅 Planned</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Click Popup Notification -->
+  <div class="click-popup" 
+       *ngIf="showPopup"
+       [class.success]="popupType === 'success'"
+       [class.info]="popupType === 'info'"
+       [class.warning]="popupType === 'warning'"
+       [style.left.px]="popupX"
+       [style.top.px]="popupY">
+    {{ popupMessage }}
+  </div>
+</div>
+
+

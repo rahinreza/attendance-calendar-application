@@ -1,0 +1,12 @@
+node_modules/
+src/
+public/
+.git/
+.vscode/
+*.md
+*.spec.ts
+tsconfig.*.json
+angular.json
+karma.conf.js
+.editorconfig
+.gitignore
