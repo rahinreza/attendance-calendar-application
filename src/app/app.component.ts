@@ -462,6 +462,7 @@ export class AppComponent implements OnInit {
         
         // Clear existing data
         this.attendanceData.clear();
+        this.excludedDates.clear();
         
         // Find the year from the first line
         const yearMatch = lines[0].match(/\d{4}/);
@@ -484,35 +485,58 @@ export class AppComponent implements OnInit {
           }
         }
         
-        // Find the "MONTHLY DETAIL" section
-        let inMonthlySection = false;
+        // Find the "DAILY DETAIL" section
+        let inDailySection = false;
         let headerPassed = false;
         
         for (const line of lines) {
-          if (line.includes('MONTHLY DETAIL')) {
-            inMonthlySection = true;
+          if (line.includes('DAILY DETAIL')) {
+            inDailySection = true;
             continue;
           }
           
-          if (inMonthlySection) {
-            if (line.includes('Month,Date,Day,Status')) {
+          if (inDailySection) {
+            if (line.includes('Date,Day of Week,Status')) {
               headerPassed = true;
               continue;
             }
             
             if (headerPassed && line.trim()) {
               const parts = line.split(',');
-              if (parts.length >= 4) {
-                const dateStr = parts[1]?.trim();
-                const status = parts[3]?.trim().toLowerCase();
+              if (parts.length >= 3) {
+                const dateStr = parts[0]?.trim();
+                const status = parts[2]?.trim().toLowerCase();
                 
                 if (dateStr && status === 'present') {
-                  this.attendanceData.set(dateStr, true);
+                  // Convert date format from M/D/YYYY to YYYY-M-D
+                  const dateParts = dateStr.split('/');
+                  if (dateParts.length === 3) {
+                    const month = parseInt(dateParts[0]) - 1; // Convert to 0-based month
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateParts[2]);
+                    const internalDateStr = `${year}-${month}-${day}`;
+                    this.attendanceData.set(internalDateStr, true);
+                  }
+                } else if (dateStr && status === 'excluded') {
+                  // Import excluded dates
+                  const dateParts = dateStr.split('/');
+                  if (dateParts.length === 3) {
+                    const month = parseInt(dateParts[0]) - 1;
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateParts[2]);
+                    const internalDateStr = `${year}-${month}-${day}`;
+                    // Extract the reason from notes (4th column, quoted)
+                    const notes = parts[3]?.trim().replace(/^"|"$/g, '') || 'Excluded';
+                    this.excludedDates.set(internalDateStr, notes);
+                  }
                 }
               }
             }
           }
         }
+        
+        // Invalidate cache after importing data
+        this.invalidateStatsCache();
         
         this.saveAttendanceData();
         alert('Excel data imported successfully!');
