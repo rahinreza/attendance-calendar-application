@@ -389,8 +389,10 @@ export class AppComponent implements OnInit {
         const data = JSON.parse(content);
         
         if (data.year && data.attendance) {
-          // Clear existing data
+          // Clear ALL existing data first to ensure clean import
           this.attendanceData.clear();
+          this.excludedDates.clear();
+          this.plannedDates.clear();
           
           // Import username if available
           if (data.userName && data.userName.trim()) {
@@ -407,7 +409,6 @@ export class AppComponent implements OnInit {
           
           // Import excluded dates if available
           if (data.excludedDates) {
-            this.excludedDates.clear();
             data.excludedDates.forEach((entry: [string, string]) => {
               this.excludedDates.set(entry[0], entry[1]);
             });
@@ -415,7 +416,6 @@ export class AppComponent implements OnInit {
           
           // Import planned dates if available
           if (data.plannedDates) {
-            this.plannedDates.clear();
             data.plannedDates.forEach((entry: [string, boolean]) => {
               this.plannedDates.set(entry[0], entry[1]);
             });
@@ -463,6 +463,7 @@ export class AppComponent implements OnInit {
         // Clear existing data
         this.attendanceData.clear();
         this.excludedDates.clear();
+        this.plannedDates.clear();
         
         // Find the year from the first line
         const yearMatch = lines[0].match(/\d{4}/);
@@ -528,6 +529,16 @@ export class AppComponent implements OnInit {
                     // Extract the reason from notes (4th column, quoted)
                     const notes = parts[3]?.trim().replace(/^"|"$/g, '') || 'Excluded';
                     this.excludedDates.set(internalDateStr, notes);
+                  }
+                } else if (dateStr && status === 'planned') {
+                  // Import planned dates
+                  const dateParts = dateStr.split('/');
+                  if (dateParts.length === 3) {
+                    const month = parseInt(dateParts[0]) - 1;
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateParts[2]);
+                    const internalDateStr = `${year}-${month}-${day}`;
+                    this.plannedDates.set(internalDateStr, true);
                   }
                 }
               }
@@ -611,6 +622,9 @@ export class AppComponent implements OnInit {
             notes = this.getHolidayName(date);
           } else if (this.isPresent(date)) {
             status = 'Present';
+          } else if (this.isPlanned(date)) {
+            status = 'Planned';
+            notes = 'Planned attendance';
           } else if (date <= new Date()) {
             status = 'Absent';
           } else {
