@@ -207,7 +207,7 @@
               [class.today]="isToday(date)"
               [class.marked-present]="date && isPresent(date) && !isFuture(date) && !isWeekend(date) && !isExcluded(date) && !isHoliday(date)"
               [class.planned]="isPlanned(date) && isFuture(date)"
-              [title]="isHoliday(date) ? getHolidayName(date) : (isExcluded(date) ? 'Out of Office' : (isPlanned(date) && isFuture(date) ? 'Planned (Shift+Click)' : ''))"
+              [title]="isHoliday(date) ? getHolidayName(date) : (isExcluded(date) ? 'Out of Office' : (isPlanned(date) && isFuture(date) ? 'Planned' : ''))"
               (click)="selectDate(date, false, $event)"
               (contextmenu)="selectDate(date, true, $event); $event.preventDefault()">
               <span *ngIf="date" class="mini-day-number">{{ date.getDate() }}</span>
@@ -254,7 +254,7 @@
 
       <!-- Instructions -->
       <div class="instructions">
-        <p>💡 Click = Present • Right-click = OOO • <strong>Shift+Click</strong> future = Plan</p>
+        <p>💡 Click = Present/Plan • Right-click = OOO</p>
         <p>✓ Present • 💼 Out of Office • 📅 Planned</p>
       </div>
     </div>

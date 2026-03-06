@@ -844,20 +844,13 @@ export class AppComponent implements OnInit {
     if (date && !this.isWeekend(date) && !this.isHoliday(date)) {
       this.selectedDate = date;
       const isFutureDate = this.isFuture(date);
-      const isShiftClick = event?.shiftKey;
       
       if (isRightClick) {
         // Right-click toggles exclusion (vacation/OOO)
         this.toggleExclusion(date, event);
-      } else if (isFutureDate && isShiftClick) {
-        // Shift+Click on future date toggles planned attendance
-        this.togglePlannedAttendance(date, event);
       } else if (isFutureDate) {
-        // Regular click on future date shows info
-        if (event) {
-          this.showClickPopup('Shift+Click to plan future attendance 📅', event.clientX, event.clientY, 'info');
-        }
-        return; // Don't save for info messages
+        // Click on future date toggles planned attendance
+        this.togglePlannedAttendance(date, event);
       } else {
         // Left-click toggles actual attendance (but not if excluded)
         if (!this.isExcluded(date)) {
