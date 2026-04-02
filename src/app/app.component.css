@@ -952,7 +952,7 @@
 }
 
 .mini-calendar-day {
-  aspect-ratio: 1;
+  aspect-ratio: 1.4;
   border-radius: 0.2rem;
   display: flex;
   flex-direction: column;
@@ -963,10 +963,10 @@
   background: #132f4c;
   border: 1px solid #1e3a5f;
   transition: all 0.15s ease;
-  min-height: 14px;
+  min-height: 12px;
   font-size: 0.5rem;
   color: #e3f2fd;
-  padding: 0.08rem;
+  padding: 0.06rem 0.08rem;
   user-select: none;
 }
 
