@@ -508,7 +508,7 @@ export class AppComponent implements OnInit {
                 const dateStr = parts[0]?.trim();
                 const status = parts[2]?.trim().toLowerCase();
                 
-                if (dateStr && status === 'present') {
+                if (dateStr && (status === 'present' || status === 'in office')) {
                   // Convert date format from M/D/YYYY to YYYY-M-D
                   const dateParts = dateStr.split('/');
                   if (dateParts.length === 3) {
@@ -576,7 +576,7 @@ export class AppComponent implements OnInit {
     csv += 'Days Absent,' + yearStats.absentDays + '\n';
     csv += 'Holidays,' + yearStats.holidayCount + '\n';
     csv += 'Work Days (Weekdays - Holidays),' + yearStats.workDays + '\n';
-    csv += 'Attendance Rate,' + yearStats.attendanceRate.toFixed(2) + '%\n\n';
+    csv += 'In Office Rate,' + yearStats.attendanceRate.toFixed(2) + '%\n\n';
     
     // Quarterly Summary
     csv += 'QUARTERLY SUMMARY\n';
@@ -592,7 +592,7 @@ export class AppComponent implements OnInit {
     
     // Monthly Detail
     csv += 'MONTHLY DETAIL\n';
-    csv += 'Month,Present Days,Absent Days,Holidays,Total Weekdays,Work Days,Attendance Rate,Avg per Week\n';
+    csv += 'Month,In Office Days,Not in Office Days,Holidays,Total Weekdays,Work Days,In Office Rate,Avg per Week\n';
     for (let m = 0; m < 12; m++) {
       const mStats = this.getMonthStats(m);
       const avgPerWeek = this.getAveragePerWeek(m).toFixed(2);
@@ -621,12 +621,12 @@ export class AppComponent implements OnInit {
             status = 'Holiday';
             notes = this.getHolidayName(date);
           } else if (this.isPresent(date)) {
-            status = 'Present';
+            status = 'In Office';
           } else if (this.isPlanned(date)) {
             status = 'Planned';
             notes = 'Planned attendance';
           } else if (date <= new Date()) {
-            status = 'Absent';
+            status = 'Not in Office';
           } else {
             status = 'Future';
           }
@@ -860,7 +860,7 @@ export class AppComponent implements OnInit {
             if (wasPresent) {
               this.showClickPopup('Unmarked', event.clientX, event.clientY, 'info');
             } else {
-              this.showClickPopup('Present ✓', event.clientX, event.clientY, 'success');
+              this.showClickPopup('In Office ✓', event.clientX, event.clientY, 'success');
             }
           }
         } else if (event) {
@@ -972,7 +972,7 @@ export class AppComponent implements OnInit {
   
   getAttendanceStatus(date: Date | null): string {
     if (!date) return '';
-    return this.isPresent(date) ? 'Present' : 'Absent';
+    return this.isPresent(date) ? 'In Office' : 'Not in Office';
   }
   
   getYearStats() {

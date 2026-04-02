@@ -28,16 +28,28 @@
   background: #0a1929;
   color: white;
   padding: 0.5rem 0;
-  text-align: center;
   border-bottom: 1px solid #1e3a5f;
+}
+
+.header .container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .header-title {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
+}
+
+.username-section {
+  position: absolute;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .app-logo {
@@ -65,14 +77,6 @@
   color: #90caf9;
   font-style: italic;
   opacity: 0.9;
-}
-
-.username-section {
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
 }
 
 .username-label {
@@ -187,6 +191,14 @@
   border-left: 2px solid #64b5f6;
 }
 
+
+.local-storage-warning {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.7rem;
+  padding: 3px 16px;
+  text-align: right;
+}
 
 .stat-card.present {
   border-left-color: #10b981;
@@ -607,10 +619,25 @@
   border: 2px solid;
   transition: all 0.3s ease;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+}
+
+.average-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 0.15rem;
+  flex: 1;
+}
+
+.average-card-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
 }
 
 .average-card.red {
@@ -694,7 +721,7 @@
 }
 
 .days-needed {
-  margin-top: 0.3rem;
+  margin-top: 0;
 }
 
 .target-badge {
@@ -711,7 +738,7 @@
 }
 
 .days-achieved {
-  margin-top: 0.3rem;
+  margin-top: 0;
 }
 
 .success-badge {

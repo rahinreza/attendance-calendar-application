@@ -6,6 +6,10 @@
 <div class="calendar-app">
   <!-- Header -->
   <header class="header">
+    <!-- Local Storage Warning -->
+    <div class="local-storage-warning">
+      ⚠️ Data is stored locally and will be lost if browser data is cleared.
+    </div>
     <div class="container">
       <div class="header-title">
         <img src="logo.svg" alt="Attendance App Logo" class="app-logo">
@@ -95,7 +99,7 @@
             <line x1="9" y1="15" x2="15" y2="15"></line>
             <line x1="12" y1="12" x2="12" y2="18"></line>
           </svg>
-          Import Excel
+          Import CSV
         </button>
         <input type="file" id="excelFileInput" accept=".csv,.txt" style="display: none" (change)="importExcel($event)">
         <button class="control-btn excel-btn" (click)="exportToExcel()">
@@ -105,7 +109,7 @@
             <line x1="12" y1="18" x2="12" y2="12"></line>
             <line x1="9" y1="15" x2="15" y2="15"></line>
           </svg>
-          Export Excel
+          Export CSV
         </button>
       </div>
 
@@ -113,11 +117,11 @@
       <div class="stats-section">
         <div class="stat-card present">
           <div class="stat-number">{{ getYearStats().presentDays }}</div>
-          <div class="stat-label">Days Present</div>
+          <div class="stat-label">Days In Office</div>
         </div>
         <div class="stat-card absent">
           <div class="stat-number">{{ getYearStats().absentDays }}</div>
-          <div class="stat-label">Days Absent</div>
+          <div class="stat-label">Days Not in Office</div>
         </div>
         <div class="stat-card holiday">
           <div class="stat-number">{{ getYearStats().holidayCount }}</div>
@@ -133,7 +137,7 @@
         </div>
         <div class="stat-card rate">
           <div class="stat-number">{{ getYearStats().attendanceRate.toFixed(1) }}%</div>
-          <div class="stat-label">Attendance Rate</div>
+          <div class="stat-label">In Office Rate</div>
         </div>
       </div>
 
@@ -142,24 +146,24 @@
         <div *ngFor="let quarter of getAllQuartersSequential()" class="average-card" [ngClass]="getAverageColor(getQuarterStats(quarter, false).averagePerWeek)">
           <ng-container *ngIf="getQuarterStats(quarter, false) as qStats">
             <ng-container *ngIf="getQuarterStats(quarter, true) as qStatsProj">
-              <div class="average-header">
-                <h3>{{ getQuarterName(quarter) }}<span *ngIf="isCurrentQuarter(quarter)" class="current-quarter-badge-small">Current</span></h3>
+              <div class="average-card-main">
+                <div class="average-header">
+                  <h3>{{ getQuarterName(quarter) }}<span *ngIf="isCurrentQuarter(quarter)" class="current-quarter-badge-small">Current</span></h3>
+                </div>
+                <div class="average-number">{{ qStats.averagePerWeek.toFixed(2) }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.averagePerWeek.toFixed(2) }}</span></div>
+                <div class="average-label">days/wk</div>
+                <div class="quarter-info">
+                  {{ qStats.presentDays }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.presentDays }}</span>/{{ qStats.totalWeekdays }} days
+                </div>
               </div>
-              <div class="average-number">{{ qStats.averagePerWeek.toFixed(2) }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.averagePerWeek.toFixed(2) }}</span></div>
-              <div class="average-label">days/wk</div>
-              <div class="quarter-info">
-                {{ qStats.presentDays }}<span *ngIf="hasPlannedDatesInQuarter(quarter)" class="projected-value"> / {{ qStatsProj.presentDays }}</span>/{{ qStats.totalWeekdays }} days
-              </div>
-              <ng-container *ngIf="qStats.averagePerWeek >= 2.0; else showDaysNeeded">
-                <div class="days-achieved">
+              <div class="average-card-badge">
+                <ng-container *ngIf="qStats.averagePerWeek >= 2.0; else showDaysNeeded">
                   <span class="success-badge">✓ 2.0+ Achieved</span>
-                </div>
-              </ng-container>
-              <ng-template #showDaysNeeded>
-                <div class="days-needed" *ngIf="qStats.daysNeededForTarget > 0">
-                  <span class="target-badge">Need {{ qStats.presentDays + qStats.daysNeededForTarget }} ({{ qStats.daysNeededForTarget }}+) for 2.0+</span>
-                </div>
-              </ng-template>
+                </ng-container>
+                <ng-template #showDaysNeeded>
+                  <span class="target-badge" *ngIf="qStats.daysNeededForTarget > 0">Need {{ qStats.presentDays + qStats.daysNeededForTarget }} ({{ qStats.daysNeededForTarget }}+) for 2.0+</span>
+                </ng-template>
+              </div>
             </ng-container>
           </ng-container>
         </div>
@@ -222,7 +226,7 @@
             <div class="month-stat-row">
               <div class="month-stat-item">
                 <span class="stat-value">{{ getMonthStats(month).presentDays }}<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-value"> / {{ getMonthStats(month).projectedPresentDays }}</span></span>
-                <span class="stat-text">Present<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-label"> / Proj</span></span>
+                <span class="stat-text">In Office<span *ngIf="hasPlannedDatesInMonth(month)" class="projected-label"> / Proj</span></span>
               </div>
               <div class="month-stat-divider">/</div>
               <div class="month-stat-item">
@@ -254,8 +258,8 @@
 
       <!-- Instructions -->
       <div class="instructions">
-        <p>💡 Click = Present/Plan • Right-click = OOO</p>
-        <p>✓ Present • 💼 Out of Office • 📅 Planned</p>
+        <p>💡 Click = In Office/Plan • Right-click = OOO</p>
+        <p>✓ In Office • 💼 Out of Office • 📅 Planned</p>
       </div>
     </div>
   </div>
