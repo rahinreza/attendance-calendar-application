@@ -121,7 +121,7 @@
         </div>
         <div class="stat-card absent">
           <div class="stat-number">{{ getYearStats().absentDays }}</div>
-          <div class="stat-label">Days Not in Office</div>
+          <div class="stat-label">Days Remote</div>
         </div>
         <div class="stat-card holiday">
           <div class="stat-number">{{ getYearStats().holidayCount }}</div>
@@ -146,6 +146,24 @@
         <div *ngFor="let quarter of getAllQuartersSequential()" class="average-card" [ngClass]="getAverageColor(getQuarterStats(quarter, false).averagePerWeek)">
           <ng-container *ngIf="getQuarterStats(quarter, false) as qStats">
             <ng-container *ngIf="getQuarterStats(quarter, true) as qStatsProj">
+              <span class="quarter-info-btn" (click)="toggleQuarterInfo(quarter, $event)">i</span>
+              <div class="quarter-info-tooltip" *ngIf="activeQuarterInfo === quarter">
+                <div class="tooltip-header">{{ getQuarterName(quarter) }} Breakdown</div>
+                <div class="tooltip-row">
+                  <span>Days In Office:</span>
+                  <strong>{{ qStats.presentDays }}</strong>
+                </div>
+                <div class="tooltip-row">
+                  <span>Total Work Days:</span>
+                  <strong>{{ qStats.totalWeekdays }}</strong>
+                </div>
+                <div class="tooltip-divider"></div>
+                <div *ngFor="let calc of getQuarterTargetCalc(quarter)" class="tooltip-row" [ngClass]="{'tooltip-row-achieved': calc.achieved}">
+                  <span>{{ calc.target }} days/wk:</span>
+                  <strong *ngIf="calc.achieved" class="tooltip-achieved">✓ Achieved</strong>
+                  <strong *ngIf="!calc.achieved" class="tooltip-needed">Need {{ calc.totalRequired }} ({{ calc.daysNeeded }} more)</strong>
+                </div>
+              </div>
               <div class="average-card-main">
                 <div class="average-header">
                   <h3>{{ getQuarterName(quarter) }}<span *ngIf="isCurrentQuarter(quarter)" class="current-quarter-badge-small">Current</span></h3>

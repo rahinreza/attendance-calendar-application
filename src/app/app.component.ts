@@ -4,7 +4,7 @@
  * https://github.com/rreza200
  */
 
-import { Component, Inject, PLATFORM_ID, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, ChangeDetectionStrategy, OnInit, HostListener } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -72,6 +72,14 @@ export class AppComponent implements OnInit {
   popupX: number = 0;
   popupY: number = 0;
   popupType: 'success' | 'info' | 'warning' = 'info';
+
+  // Quarter info tooltip
+  activeQuarterInfo: number | null = null;
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.activeQuarterInfo = null;
+  }
   
   // Review modal
   showReviewModal: boolean = false;
@@ -325,9 +333,6 @@ export class AppComponent implements OnInit {
       if (savedData) {
         const dataArray = JSON.parse(savedData);
         this.attendanceData = new Map(dataArray);
-      } else {
-        // Initialize with sample data if no saved data exists
-        this.initializeSampleData();
       }
       
       if (savedExcludedDates) {
@@ -347,9 +352,6 @@ export class AppComponent implements OnInit {
       
       // Invalidate cache after loading data
       this.invalidateStatsCache();
-    } else {
-      // Initialize with sample data for SSR
-      this.initializeSampleData();
     }
   }
   
@@ -518,6 +520,9 @@ export class AppComponent implements OnInit {
                     const internalDateStr = `${year}-${month}-${day}`;
                     this.attendanceData.set(internalDateStr, true);
                   }
+                } else if (dateStr && (status === 'remote' || status === 'not in office' || status === 'absent')) {
+                  // Backward compatible: treat old "Not in Office"/"Absent" and new "Remote" as non-present (skip)
+                  continue;
                 } else if (dateStr && status === 'excluded') {
                   // Import excluded dates
                   const dateParts = dateStr.split('/');
@@ -573,7 +578,7 @@ export class AppComponent implements OnInit {
     const yearStats = this.getYearStats();
     csv += 'YEAR SUMMARY\n';
     csv += 'Days Present,' + yearStats.presentDays + '\n';
-    csv += 'Days Absent,' + yearStats.absentDays + '\n';
+    csv += 'Days Remote,' + yearStats.absentDays + '\n';
     csv += 'Holidays,' + yearStats.holidayCount + '\n';
     csv += 'Work Days (Weekdays - Holidays),' + yearStats.workDays + '\n';
     csv += 'In Office Rate,' + yearStats.attendanceRate.toFixed(2) + '%\n\n';
@@ -592,7 +597,7 @@ export class AppComponent implements OnInit {
     
     // Monthly Detail
     csv += 'MONTHLY DETAIL\n';
-    csv += 'Month,In Office Days,Not in Office Days,Holidays,Total Weekdays,Work Days,In Office Rate,Avg per Week\n';
+    csv += 'Month,In Office Days,Remote Days,Holidays,Total Weekdays,Work Days,In Office Rate,Avg per Week\n';
     for (let m = 0; m < 12; m++) {
       const mStats = this.getMonthStats(m);
       const avgPerWeek = this.getAveragePerWeek(m).toFixed(2);
@@ -626,7 +631,7 @@ export class AppComponent implements OnInit {
             status = 'Planned';
             notes = 'Planned attendance';
           } else if (date <= new Date()) {
-            status = 'Not in Office';
+            status = 'Remote';
           } else {
             status = 'Future';
           }
@@ -972,7 +977,7 @@ export class AppComponent implements OnInit {
   
   getAttendanceStatus(date: Date | null): string {
     if (!date) return '';
-    return this.isPresent(date) ? 'In Office' : 'Not in Office';
+    return this.isPresent(date) ? 'In Office' : 'Remote';
   }
   
   getYearStats() {
@@ -1174,6 +1179,28 @@ export class AppComponent implements OnInit {
       daysNeededForTarget,
       quarterNumber: quarter + 1
     };
+  }
+
+  toggleQuarterInfo(quarter: number, event: Event) {
+    event.stopPropagation();
+    this.activeQuarterInfo = this.activeQuarterInfo === quarter ? null : quarter;
+  }
+
+  getQuarterTargetCalc(quarter: number) {
+    const qStats = this.getQuarterStats(quarter, false);
+    const totalWeekdays = qStats.totalWeekdays;
+    const presentDays = qStats.presentDays;
+
+    const targets = [2.25, 3, 4];
+    return targets.map(target => {
+      const daysNeeded = Math.ceil((target * totalWeekdays / 5) - presentDays);
+      return {
+        target,
+        totalRequired: Math.ceil(target * totalWeekdays / 5),
+        daysNeeded: Math.max(0, daysNeeded),
+        achieved: qStats.averagePerWeek >= target
+      };
+    });
   }
   
   getQuarterDetailedStats(quarter: number) {

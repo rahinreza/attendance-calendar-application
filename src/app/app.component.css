@@ -754,6 +754,100 @@
   letter-spacing: 0.02em;
 }
 
+/* Quarter Info Tooltip */
+.average-card {
+  position: relative;
+}
+
+.quarter-info-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: rgba(144, 202, 249, 0.15);
+  border: 1px solid rgba(144, 202, 249, 0.4);
+  color: #90caf9;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all 0.2s ease;
+  font-family: Georgia, serif;
+}
+
+.quarter-info-btn:hover {
+  background: rgba(144, 202, 249, 0.3);
+  border-color: #90caf9;
+  color: #e3f2fd;
+}
+
+.quarter-info-tooltip {
+  position: absolute;
+  top: 1.6rem;
+  right: 0.3rem;
+  background: #1a2332;
+  border: 1px solid rgba(144, 202, 249, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  z-index: 10;
+  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  text-align: left;
+}
+
+.tooltip-header {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #e3f2fd;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(144, 202, 249, 0.2);
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6rem;
+  color: #90caf9;
+  padding: 0.15rem 0;
+}
+
+.tooltip-row strong {
+  color: #e3f2fd;
+}
+
+.tooltip-achieved {
+  color: #10b981 !important;
+}
+
+.tooltip-row-achieved {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.3rem;
+}
+
+.tooltip-row-achieved span {
+  color: #10b981;
+}
+
+.tooltip-needed {
+  color: #fbbf24;
+}
+
+.tooltip-divider {
+  height: 1px;
+  background: rgba(144, 202, 249, 0.15);
+  margin: 0.3rem 0;
+}
+
 /* Quarter Sections */
 .quarters-container {
   margin-bottom: 0.5rem;
