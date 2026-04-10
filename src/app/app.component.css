@@ -1,9 +1,3 @@
-/**
- * Attendance Calendar Application
- * Created by: Rahin Reza
- * https://github.com/rreza200
- */
-
 /* Base Styles */
 * {
   margin: 0;
@@ -238,168 +232,6 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.2px;
-}
-
-
-/* Calendar Container */
-.calendar-container {
-  background: white;
-  border-radius: 1.5rem;
-  padding: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  margin-bottom: 2rem;
-}
-
-/* Calendar Header */
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #1e3a5f;
-}
-
-.calendar-header h2 {
-  font-size: 1.8rem;
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.nav-btn {
-  background: #f3f4f6;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  color: #4b5563;
-}
-
-.nav-btn:hover {
-  background: #667eea;
-  color: white;
-  transform: scale(1.1);
-}
-
-/* Week Days */
-.calendar-weekdays {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.weekday {
-  text-align: center;
-  font-weight: 600;
-  color: #6b7280;
-  font-size: 0.9rem;
-  padding: 0.5rem;
-}
-
-/* Calendar Days */
-.calendar-days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-}
-
-.calendar-day {
-  aspect-ratio: 1;
-  border-radius: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  background: #f9fafb;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  min-height: 80px;
-}
-
-.calendar-day:not(.empty):hover {
-  background: #e5e7eb;
-  transform: scale(1.08);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  border-color: #667eea;
-}
-
-.calendar-day.marked-present:hover {
-  background: #bbf7d0;
-  border-color: #10b981;
-}
-
-.calendar-day:not(.empty):active {
-  transform: scale(0.95);
-}
-
-.calendar-day.empty {
-  cursor: default;
-  background: transparent;
-}
-
-.calendar-day.weekend {
-  background: #f3f4f6;
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.calendar-day.weekend .day-number {
-  color: #9ca3af;
-}
-
-.calendar-day.disabled {
-  pointer-events: none;
-}
-
-.calendar-day.today {
-  border-color: #667eea;
-  background: #eef2ff;
-}
-
-.calendar-day.marked-present {
-  background: #d1fae5;
-  border-color: #10b981;
-}
-
-.day-number {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.attendance-indicator {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-}
-
-.indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-.indicator.present {
-  background: #10b981;
-  color: white;
-}
-
-.indicator.absent {
-  background: #ef4444;
-  color: white;
 }
 
 /* Year Header */
@@ -975,15 +807,6 @@
   opacity: 0;
 }
 
-/* Year Calendar Grid (Legacy - still used for reference) */
-.year-calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  width: 100%;
-}
-
 .month-container {
   background: #0a1929;
   border-radius: 0.4rem;
@@ -1488,17 +1311,7 @@
   }
 }
 
-@media (min-width: 1200px) {
-  .year-calendar-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (min-width: 1600px) {
-  .year-calendar-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  
   .container {
     max-width: 1600px;
   }
