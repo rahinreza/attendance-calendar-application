@@ -1258,14 +1258,14 @@ export class AppComponent implements OnInit {
     // COUNT only counts weekdays (no weekends)
     const averagePerWeek = totalWeekdaysInQuarter > 0 ? (presentDays / totalWeekdaysInQuarter) * 5 : 0;
     
-    // Calculate days needed to reach 2.0 average
-    // Target: (presentDays + daysNeeded) / totalWeekdays * 5 = 2.0
-    // Solve: daysNeeded = (2.0 * totalWeekdays / 5) - presentDays
-    const targetAverage = 2.0;
+    // Calculate days needed to reach 3.0 average
+    // Target: (presentDays + daysNeeded) / totalWeekdays * 5 = 3.0
+    // Solve: daysNeeded = (3.0 * totalWeekdays / 5) - presentDays
+    const targetAverage = 3.0;
     let daysNeededForTarget = Math.max(0, Math.ceil((targetAverage * totalWeekdaysInQuarter / 5) - presentDays));
     
-    // If average is already >= 2.0, force daysNeeded to 0
-    if (averagePerWeek >= 2.0) {
+    // If average is already >= 3.0, force daysNeeded to 0
+    if (averagePerWeek >= targetAverage) {
       daysNeededForTarget = 0;
     }
     
@@ -1354,8 +1354,8 @@ export class AppComponent implements OnInit {
   
   getAverageColor(average: number): string {
     if (average < 1) return 'red';
-    if (average >= 1 && average < 1.995) return 'yellow';
-    if (average >= 1.995 && average < 2.25) return 'light-green';
+    if (average >= 1 && average < 2.995) return 'yellow';
+    if (average >= 2.995 && average < 3.25) return 'light-green';
     return 'dark-green';
   }
   

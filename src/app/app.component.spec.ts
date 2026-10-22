@@ -311,6 +311,12 @@ describe('AppComponent', () => {
       expect(q.daysNeededForTarget).toBeGreaterThanOrEqual(0);
     });
 
+    it('getQuarterStats counts days needed toward a 3.0 average', () => {
+      const q = component.getQuarterStats(0);
+      expect(q.presentDays).toBe(0);
+      expect(q.daysNeededForTarget).toBe(Math.ceil(3 * q.totalWeekdays / 5));
+    });
+
     it('getQuarterDetailedStats and getQuarterTargetCalc return data', () => {
       const detail = component.getQuarterDetailedStats(0);
       expect(detail.totalWeekdays).toBeGreaterThan(0);
@@ -354,9 +360,11 @@ describe('AppComponent', () => {
 
     it('getAverageColor maps averages to color buckets', () => {
       expect(component.getAverageColor(0.5)).toBe('red');
-      expect(component.getAverageColor(1.5)).toBe('yellow');
-      expect(component.getAverageColor(2.0)).toBe('light-green');
-      expect(component.getAverageColor(2.5)).toBe('dark-green');
+      expect(component.getAverageColor(1.0)).toBe('yellow');
+      expect(component.getAverageColor(2.5)).toBe('yellow');
+      expect(component.getAverageColor(2.99)).toBe('yellow');
+      expect(component.getAverageColor(3.0)).toBe('light-green');
+      expect(component.getAverageColor(3.5)).toBe('dark-green');
     });
   });
 

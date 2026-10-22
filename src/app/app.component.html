@@ -175,11 +175,11 @@
                 </div>
               </div>
               <div class="average-card-badge">
-                <ng-container *ngIf="qStats.averagePerWeek >= 2.0; else showDaysNeeded">
-                  <span class="success-badge">✓ 2.0+ Achieved</span>
+                <ng-container *ngIf="qStats.averagePerWeek >= 3.0; else showDaysNeeded">
+                  <span class="success-badge">✓ 3.0+ Achieved</span>
                 </ng-container>
                 <ng-template #showDaysNeeded>
-                  <span class="target-badge" *ngIf="qStats.daysNeededForTarget > 0">Need {{ qStats.presentDays + qStats.daysNeededForTarget }} ({{ qStats.daysNeededForTarget }}+) for 2.0+</span>
+                  <span class="target-badge" *ngIf="qStats.daysNeededForTarget > 0">Need {{ qStats.presentDays + qStats.daysNeededForTarget }} ({{ qStats.daysNeededForTarget }}+) for 3.0+</span>
                 </ng-template>
               </div>
             </ng-container>
