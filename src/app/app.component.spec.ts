@@ -749,6 +749,306 @@ describe('AppComponent', () => {
       expect(() => component.getMonthStats(5)).not.toThrow();
     });
   });
+
+  describe('edge cases', () => {
+    const ev = { clientX: 10, clientY: 10 } as MouseEvent;
+    const now = new Date();
+    const useYear = (year: number) => {
+      component.currentYear = year;
+      component.setHolidaysForYear(year);
+      component['calendarDaysCache'].clear();
+      component['hrMonthDaysCache'].clear();
+      component.invalidateStatsCache();
+    };
+    const nextWorkday = (y: number, m: number, d: number) => {
+      const date = D(y, m, d);
+      while (component.isWeekend(date) || component.isHoliday(date)) date.setDate(date.getDate() + 1);
+      return date;
+    };
+    const fileEvent = (files: File[]) => {
+      const input = document.createElement('input');
+      Object.defineProperty(input, 'files', { value: files });
+      return { target: input } as unknown as Event;
+    };
+
+    it('ngOnInit wires the date-change timer and cross-tab storage sync', () => {
+      let tick: () => void = () => {};
+      let onStorage: (e: StorageEvent) => void = () => {};
+      spyOn(window, 'setInterval').and.callFake(((fn: () => void) => { tick = fn; return 0; }) as unknown as typeof window.setInterval);
+      spyOn(window, 'addEventListener').and.callFake(((type: string, handler: (e: StorageEvent) => void) => {
+        if (type === 'storage') onStorage = handler;
+      }) as unknown as typeof window.addEventListener);
+      const load = spyOn(component, 'loadAttendanceData').and.callThrough();
+
+      component.ngOnInit();
+      component['todayKey'] = 'stale';
+      tick();
+      expect(component['todayKey']).toBe(component.getDateKey(now));
+
+      onStorage({ key: 'userName' } as StorageEvent);
+      expect(load).not.toHaveBeenCalled();
+      for (const key of ['attendanceData', 'plannedDates', 'excludedDates']) {
+        onStorage({ key } as StorageEvent);
+      }
+      expect(load).toHaveBeenCalledTimes(3);
+      expect(component.popupMessage).toContain('synced');
+    });
+
+    it('checkDateChange converts a planned day to present when the date rolls over', () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      component.plannedDates.set(component.getDateKey(today), true);
+      component['todayKey'] = 'stale';
+      component['checkDateChange']();
+      expect(component.isPresent(today)).toBeTrue();
+      expect(component.isPlanned(today)).toBeFalse();
+    });
+
+    it('shifts a Sunday holiday to the observed Monday', () => {
+      component.setHolidaysForYear(2023); // Jan 1, 2023 is a Sunday
+      expect(component.isHoliday(D(2023, 0, 2))).toBeTrue();
+      expect(component.getHolidayName(D(2023, 0, 2))).toContain('Observed');
+    });
+
+    it('null and missing-value guards return safe defaults', () => {
+      expect(component.getHolidayName(null)).toBe('');
+      expect(component.getHolidayName(D(2025, 4, 14))).toBe('');
+      expect(component.isExcluded(null)).toBeFalse();
+      expect(component.isPlanned(null)).toBeFalse();
+      expect(component.getExclusionReason(null)).toBe('');
+      expect(component.getExclusionReason(D(2025, 4, 14))).toBe('');
+      expect(component.isMarked(null)).toBeFalse();
+      expect(component.isPresent(null)).toBeFalse();
+      expect(component.isAbsent(null)).toBeFalse();
+      expect(component.getAttendanceStatus(null)).toBe('');
+      component.toggleExclusion(null);
+      expect(component.excludedDates.size).toBe(0);
+    });
+
+    it('isSelected compares against the selected date', () => {
+      expect(component.isSelected(D(2025, 4, 14))).toBeFalse();
+      component.selectedDate = D(2025, 4, 14);
+      expect(component.isSelected(null)).toBeFalse();
+      expect(component.isSelected(D(2025, 4, 14))).toBeTrue();
+      expect(component.isSelected(D(2025, 4, 15))).toBeFalse();
+    });
+
+    it('selectDate uses left-click by default and ignores null', () => {
+      component.selectDate(null);
+      expect(component.selectedDate).toBeNull();
+      component.selectDate(D(2025, 4, 14));
+      expect(component.isPresent(D(2025, 4, 14))).toBeTrue();
+    });
+
+    it('showClickPopup defaults to the info type', () => {
+      component.showClickPopup('Hi', 0, 0);
+      expect(component.popupType).toBe('info');
+    });
+
+    it('saveUsername stores "User" for a blank name', () => {
+      component.userName = '';
+      component.saveUsername();
+      expect(localStorage.getItem('userName')).toBe('User');
+    });
+
+    it('loadUsername falls back to "User" when nothing is saved', () => {
+      component.userName = 'Someone';
+      component.loadUsername();
+      expect(component.userName).toBe('User');
+    });
+
+    describe('timers', () => {
+      beforeEach(() => jasmine.clock().install());
+      afterEach(() => jasmine.clock().uninstall());
+
+      it('hides the save indicator and popup after their timeouts', () => {
+        component.saveUsernameAndClose();
+        jasmine.clock().tick(5000);
+        expect(component.showSaveIndicator).toBeFalse();
+
+        component.saveAttendanceData(false);
+        expect(component.showSaveIndicator).toBeTrue();
+        jasmine.clock().tick(5000);
+        expect(component.showSaveIndicator).toBeFalse();
+
+        component.showClickPopup('Hi', 0, 0);
+        jasmine.clock().tick(2000);
+        expect(component.showPopup).toBeFalse();
+      });
+
+      it('shows an "Auto-saved" popup after clicks with an event', () => {
+        component.selectDate(D(2025, 4, 14), false, ev);
+        jasmine.clock().tick(500);
+        expect(component.popupMessage).toBe('Auto-saved');
+
+        component.toggleExclusion(D(2025, 4, 15), ev);
+        jasmine.clock().tick(500);
+        expect(component.popupMessage).toBe('Auto-saved');
+      });
+    });
+
+    it('previousYear / nextYear expand the current quarter when landing on this year', () => {
+      const currentQuarter = Math.floor(component.currentDate.getMonth() / 3);
+      component.currentYear = now.getFullYear() + 1;
+      component.previousYear();
+      expect(component.quarterExpanded[currentQuarter]).toBeTrue();
+
+      component.currentYear = now.getFullYear() - 1;
+      component.nextYear();
+      expect(component.quarterExpanded[currentQuarter]).toBeTrue();
+      expect(component.quarterExpanded.filter(Boolean).length).toBe(1);
+    });
+
+    it('current-year helpers reorder quarters and flag the current quarter/month', () => {
+      useYear(now.getFullYear());
+      const currentQuarter = Math.floor(now.getMonth() / 3);
+      const quarters = component.getAllQuarters();
+      expect(quarters[0]).toBe(currentQuarter);
+      expect([...quarters].sort()).toEqual([0, 1, 2, 3]);
+      expect(component.isCurrentQuarter(currentQuarter)).toBeTrue();
+      expect(component.isCurrentMonth(now.getMonth())).toBeTrue();
+    });
+
+    it('hasPlannedDatesInMonth / Quarter are false for past or unplanned periods this year', () => {
+      useYear(now.getFullYear());
+      const month = now.getMonth();
+      const quarter = Math.floor(month / 3);
+      if (month > 0) expect(component.hasPlannedDatesInMonth(month - 1)).toBeFalse();
+      if (quarter > 0) expect(component.hasPlannedDatesInQuarter(quarter - 1)).toBeFalse();
+      expect(component.hasPlannedDatesInMonth(11)).toBeFalse();
+      expect(component.hasPlannedDatesInQuarter(3)).toBeFalse();
+    });
+
+    it('a fully attended quarter needs no more days and is dark green', () => {
+      for (const m of [0, 1, 2]) {
+        for (const d of component.getHRMonthDays(m)) {
+          if (component.isWeekday(d) && !component.isHoliday(d)) {
+            component.attendanceData.set(component.getDateKey(d), true);
+          }
+        }
+      }
+      component.invalidateStatsCache();
+      const q = component.getQuarterStats(0);
+      expect(q.averagePerWeek).toBe(5);
+      expect(q.daysNeededForTarget).toBe(0);
+      expect(component.getAverageColor(q.averagePerWeek)).toBe('dark-green');
+      expect(component.getQuarterTargetCalc(0).every(c => c.achieved)).toBeTrue();
+    });
+
+    it('stats return 0 instead of dividing by zero when there are no days', () => {
+      spyOn(component, 'getHRMonthDays').and.returnValue([]);
+      component.invalidateStatsCache();
+      expect(component.getAveragePerWeek(4)).toBe(0);
+      expect(component.getQuarterStats(0).averagePerWeek).toBe(0);
+      expect(component.getMonthStats(4).projectedRate).toBe(0);
+      expect(component.getYearStats().attendanceRate).toBe(0);
+      expect(component.getQuarterDetailedStats(0).attendanceRate).toBe(0);
+    });
+
+    it('future-year months count projected holidays and default to one week', () => {
+      useYear(now.getFullYear() + 1);
+      expect(component.getMonthStats(0).projectedHolidayCount).toBeGreaterThan(0);
+      expect(component.getWeeksInMonth(0)).toBe(1);
+    });
+
+    it('getQuarterDetailedStats uses projected values when showProjected is on', () => {
+      useYear(now.getFullYear() + 1);
+      component.plannedDates.set(component.getDateKey(nextWorkday(component.currentYear, 1, 10)), true);
+      component.invalidateStatsCache();
+      component.showProjected = true;
+      expect(component.getQuarterDetailedStats(0).presentDays).toBe(1);
+      component.showProjected = false;
+      expect(component.getQuarterDetailedStats(0).presentDays).toBe(0);
+    });
+
+    it('getStatsForMonth counts present days', () => {
+      component.toggleAttendance(D(2025, 4, 14));
+      expect(component.getStatsForMonth(4, 2025).presentDays).toBe(1);
+    });
+
+    it('file imports do nothing when no file is chosen', () => {
+      const read = spyOn(FileReader.prototype, 'readAsText');
+      component.importJSON(fileEvent([]));
+      component.importExcel(fileEvent([]));
+      component.loadFromFile(fileEvent([]));
+      expect(read).not.toHaveBeenCalled();
+    });
+
+    it('importJSON imports planned dates', (done) => {
+      const json = JSON.stringify({ year: 2025, attendance: [], plannedDates: [['2025-5-10', true]] });
+      component.importJSON(fileEvent([new File([json], 'a.json')]));
+      setTimeout(() => {
+        expect(component.isPlanned(D(2025, 5, 10))).toBeTrue();
+        done();
+      }, 150);
+    });
+
+    it('importExcel defaults the exclusion reason when notes are missing', (done) => {
+      const csv = ['Attendance Report,2025', '', 'DAILY DETAIL', 'Date,Day of Week,Status,Notes', '5/15/2025,Thu,Excluded'].join('\n');
+      component.importExcel(fileEvent([new File([csv], 'a.csv')]));
+      setTimeout(() => {
+        expect(component.getExclusionReason(D(2025, 4, 15))).toBe('Excluded');
+        done();
+      }, 150);
+    });
+
+    it('importExcel alerts when processing fails', (done) => {
+      spyOn(component, 'invalidateStatsCache').and.throwError('boom');
+      spyOn(console, 'error');
+      component.importExcel(fileEvent([new File(['Attendance Report,2025'], 'a.csv')]));
+      setTimeout(() => {
+        expect(window.alert).toHaveBeenCalledWith(jasmine.stringContaining('valid CSV'));
+        done();
+      }, 150);
+    });
+
+    it('loadFromFile keeps the year when absent and alerts on malformed JSON', (done) => {
+      component.loadFromFile(fileEvent([new File([JSON.stringify({ attendance: [['2025-4-14', true]] })], 'a.json')]));
+      setTimeout(() => {
+        expect(component.currentYear).toBe(2025);
+        expect(component.isPresent(D(2025, 4, 14))).toBeTrue();
+        component.loadFromFile(fileEvent([new File(['not json'], 'b.json')]));
+        setTimeout(() => {
+          expect(window.alert).toHaveBeenCalledWith('Error reading file!');
+          done();
+        }, 150);
+      }, 150);
+    });
+
+    it('exportData names the file "User" when the username is blank', () => {
+      let fileName = '';
+      spyOn(URL, 'createObjectURL').and.returnValue('blob:test');
+      spyOn(URL, 'revokeObjectURL');
+      spyOn(HTMLAnchorElement.prototype, 'click').and.callFake(function (this: HTMLAnchorElement) {
+        fileName = this.download;
+      });
+      component.userName = '';
+      component.exportData();
+      expect(fileName).toBe('attendance-User-2025.json');
+    });
+
+    it('exportToExcel labels every day status', async () => {
+      useYear(now.getFullYear() + 1);
+      const y = component.currentYear;
+      component.excludedDates.set(component.getDateKey(nextWorkday(y, 5, 2)), 'Out of Office');
+      component.attendanceData.set(component.getDateKey(nextWorkday(y, 5, 9)), true);
+      component.plannedDates.set(component.getDateKey(nextWorkday(y, 5, 16)), true);
+      component.invalidateStatsCache();
+
+      let blob: Blob | undefined;
+      spyOn(URL, 'createObjectURL').and.callFake((b: Blob | MediaSource) => { blob = b as Blob; return 'blob:test'; });
+      spyOn(URL, 'revokeObjectURL');
+      spyOn(HTMLAnchorElement.prototype, 'click');
+      component.userName = '';
+      component.exportToExcel();
+
+      const csv = await blob!.text();
+      expect(csv).toContain('Name,User');
+      for (const status of ['Weekend', 'Excluded', 'Holiday', 'In Office', 'Planned', 'Future']) {
+        expect(csv).toContain(`,${status},`);
+      }
+    });
+  });
 });
 
 describe('AppComponent (server platform)', () => {

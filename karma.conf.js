@@ -19,9 +19,9 @@ module.exports = function (config) {
       dir: require('path').join(__dirname, './coverage/attendance-app'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'lcovonly' }],
-      // Fails the test run (and the pipeline) when coverage drops below 80%.
+      // Fails the test run (and the pipeline) when coverage drops below 95%.
       check: {
-        global: { statements: 80, branches: 80, functions: 80, lines: 80 }
+        global: { statements: 95, branches: 95, functions: 95, lines: 95 }
       }
     },
     reporters: ['progress', 'kjhtml'],

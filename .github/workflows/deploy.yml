@@ -3,27 +3,8 @@ name: test-and-deploy
 on:
   push:
     branches: [main]
-    # Only run when app-related files change.
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'angular.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig*.json'
-      - 'karma.conf.js'
-      - '.github/workflows/deploy.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'angular.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig*.json'
-      - 'karma.conf.js'
-      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 concurrency:
@@ -34,7 +15,36 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect app changes
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            app:
+              - 'src/**'
+              - 'public/**'
+              - 'angular.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig*.json'
+              - 'karma.conf.js'
+              - '.github/workflows/deploy.yml'
+
   test:
+    name: Test
+    needs: changes
+    # Manual runs always test and deploy, even without app changes.
+    if: needs.changes.outputs.app == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
@@ -50,7 +60,7 @@ jobs:
         id: chrome
         uses: browser-actions/setup-chrome@v2
 
-      - name: Run unit tests (fails below 80% coverage)
+      - name: Run unit tests (fails below 95% coverage)
         run: npm run test:ci
         env:
           CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
@@ -72,6 +82,7 @@ jobs:
           if-no-files-found: error
 
   deploy:
+    name: Deploy to S3
     needs: test
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-26.04

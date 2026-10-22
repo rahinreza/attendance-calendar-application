@@ -140,7 +140,7 @@ For more information on using the Angular CLI, including detailed command refere
 - **[PERFORMANCE-OPTIMIZATION.md](./PERFORMANCE-OPTIMIZATION.md)** – Caching strategy
 
 **Deployment**
-- **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** – CI/CD: tests (80% coverage gate) then deploy to S3 static hosting; one-time IAM setup in [infra/github-deploy-role.yml](./infra/github-deploy-role.yml)
+- **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** – CI/CD: detect app changes, run tests (95% coverage gate), then deploy to S3 static hosting; one-time IAM setup in [infra/github-deploy-role.yml](./infra/github-deploy-role.yml)
 - **[WIFI-AUTOMARK-SETUP.md](./WIFI-AUTOMARK-SETUP.md)** – macOS WiFi auto-open helper (the app currently ignores the `automark` URL params)
 
 **Historical (kept for reference; see the note at the top of each)**
