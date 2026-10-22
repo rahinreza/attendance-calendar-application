@@ -1,5 +1,9 @@
 # CHANGELOG
 
+> ℹ️ **Accuracy note (current build).** The Out-of-Office indicator emoji is now
+> **💼** (not 🏖️) and the stored reason value is **`Out of Office`** (not
+> "Vacation/OOO"). Non-office weekdays are labeled **Remote**.
+
 ## Version 2.1.0 - October 17, 2025
 
 ### 🎉 New Feature: Vacation/Out of Office Tracking

@@ -1,5 +1,12 @@
 # Projected Averages Feature - October 2025
 
+> ℹ️ **Accuracy note (current build).** Future days are planned with a **plain
+> left-click** (not Shift+Click), and there is **no "Projected / Actual" toggle
+> button**. Month and quarter cards show **actual / projected** values side by side
+> automatically whenever planned days exist. In code, `getAveragePerWeek(month,
+> useProjected)` and `getQuarterStats(quarter, useProjected)` take a parameter
+> rather than reading a global toggle.
+
 ## Enhancement Overview
 Updated month and quarter average calculations to include planned future attendance when "Projected" mode is enabled.
 

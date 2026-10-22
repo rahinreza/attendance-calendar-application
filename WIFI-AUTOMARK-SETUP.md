@@ -1,5 +1,11 @@
 # WiFi Attendance Auto-Marker Setup
 
+> ℹ️ **Accuracy note.** The URLs and WiFi name here (e.g. the `s3-website` address
+> and `CCemployee`) are **examples/defaults** — set your own during install. Also
+> note the app **does not currently read** the `automark`/`date` URL parameters:
+> opening the app simply auto-converts a day you already **planned** (📅) into
+> **In Office**, so auto-marking only takes effect for days you pre-planned.
+
 Automatically mark your attendance when you connect to your work WiFi!
 
 ## ⚡ Quick Install (One Command)

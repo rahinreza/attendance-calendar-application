@@ -1,409 +1,83 @@
-# 🎯 Vacation/OOO Feature - Visual Guide
+# Visual Guide
 
-## 📱 User Interface
+A visual reference for the Attendance Calendar UI.
 
-### Before and After
-
-#### BEFORE (Old Interface)
+## Year Statistics Bar
 ```
-Year Statistics:
-┌─────────┬─────────┬─────────┬──────────┬──────────┐
-│ Present │ Absent  │Holidays │Work Days │   Rate   │
-│   180   │   40    │   10    │   230    │  78.3%   │
-└─────────┴─────────┴─────────┴──────────┴──────────┘
-
-Instructions:
-💡 Click on any weekday to mark as present
+┌────────────┬────────────┬───────────┬───────────────┬────────────┬────────────────┐
+│ Days In    │ Days       │ Holidays  │ Out of Office │ Work Days  │ In Office Rate │
+│ Office 🟢  │ Remote ⚫  │  🔴       │ 💼            │  🔵        │  %             │
+├────────────┼────────────┼───────────┼───────────────┼────────────┼────────────────┤
+│    180     │     40     │    10     │      5        │    220     │     81.8%      │
+└────────────┴────────────┴───────────┴───────────────┴────────────┴────────────────┘
 ```
 
-#### AFTER (New Interface)
+## Quarterly Average Cards
+Each quarter shows **average in-office days/week** toward the **2.0** target, colored
+by how close it is, plus a hint for how many more days are needed. Click the **i**
+badge for a per-target breakdown (2.25 / 3 / 4 days/wk).
 ```
-Year Statistics:
-┌─────────┬─────────┬─────────┬──────────┬──────────┬──────────┐
-│ Present │ Absent  │Holidays │Vacation  │Work Days │   Rate   │
-│   180   │   40    │   10    │    5     │   225    │  80.0%   │
-│   🟢    │   🔴    │   🟠    │   🟣     │   🔵     │   🟣    │
-└─────────┴─────────┴─────────┴──────────┴──────────┴──────────┘
-
-Instructions:
-💡 Click on any weekday to mark as present • Right-click to mark as Vacation/OOO
+red < 1.0   ·   yellow 1.0–1.99   ·   light-green 2.0–2.24   ·   dark-green ≥ 2.25
 ```
 
-## 🗓️ Calendar View
-
-### Day States Visual
-
+## Calendar Day States
 ```
-┌─────────────────────────────────────────────────────┐
-│  OCTOBER 2025                                       │
-├────┬────┬────┬────┬────┬────┬────┐
+┌────┬────┬────┬────┬────┬────┬────┐
 │ Su │ Mo │ Tu │ We │ Th │ Fr │ Sa │
 ├────┼────┼────┼────┼────┼────┼────┤
-│    │    │    │ 1  │ 2  │ 3  │ 4  │
-│    │    │    │    │ ✓  │    │    │
-│    │    │    │    │🟢  │    │    │
-├────┼────┼────┼────┼────┼────┼────┤
-│ 5  │ 6  │ 7  │ 8  │ 9  │ 10 │ 11 │
-│    │ ✓  │    │ ✓  │ ✓  │    │    │
-│    │🟢  │    │🟢  │🟢  │    │    │
-├────┼────┼────┼────┼────┼────┼────┤
-│ 12 │ 13 │ 14 │ 15 │ 16 │ 17 │ 18 │
-│    │ ━━ │ ✓  │🏖️  │🏖️  │ ✓  │    │
-│    │🟠  │🟢  │🟣  │🟣  │🟢  │    │
+│    │  ✓ │    │  ✓ │ 💼 │ 📅 │    │
 └────┴────┴────┴────┴────┴────┴────┘
 
-Legend:
-🟢 Green  = Present (marked)
-🔴 Red    = Absent (unmarked weekday)
-🟠 Orange = Holiday (US Federal)
-🟣 Purple = Vacation/OOO (excluded)
-⚫ Gray   = Weekend (excluded)
-🔵 Blue   = Today
+✓   In Office   — left-click a past/today weekday (green)
+💼  Out of Office — right-click a weekday (purple border, strike-through)
+📅  Planned     — left-click a future weekday (dashed blue border)
+    Remote      — an unmarked past weekday (counts against your rate)
+━━  Holiday     — US federal holiday, red underline (not clickable)
+    Weekend     — grayed out, not clickable
+🔵  Today       — blue border
 ```
 
-### Day Detail View
-
+## Interactions
 ```
-┌──────────────────────────────────────┐
-│ NORMAL WEEKDAY (Unmarked - Absent)   │
-│ ┌──────┐                             │
-│ │  15  │  ← Left-click to mark       │
-│ │      │                             │
-│ └──────┘                             │
-│ White background                     │
-└──────────────────────────────────────┘
+┌──────┐   LEFT-CLICK (past / today)  ──►  Toggle In Office  ✓
+│  15  │   LEFT-CLICK (future)        ──►  Toggle Planned    📅
+└──────┘   RIGHT-CLICK                ──►  Toggle Out of Office 💼
+```
+Weekends and holidays are not markable. Every change auto-saves and shows a popup.
 
-┌──────────────────────────────────────┐
-│ PRESENT DAY (Marked Present)         │
-│ ┌──────┐                             │
-│ │  15  │✓ ← Green checkmark         │
-│ │      │                             │
-│ └──────┘                             │
-│ Green border, light green background │
-└──────────────────────────────────────┘
+## How Attendance Is Counted
+```
+Weekdays in the HR month
+  − US federal holidays        (excluded)
+  − Out-of-office / vacation   (excluded)
+  = Work Days
+        of which:
+          In Office  →  counts toward your rate
+          Remote     →  the rest
 
-┌──────────────────────────────────────┐
-│ VACATION/OOO (Excluded)              │
-│ ┌──────┐                             │
-│ │  15  │🏖️ ← Beach emoji            │
-│ │ ~~~  │   ← Strike-through         │
-│ └──────┘                             │
-│ Purple border, dark purple background│
-│ Right-click to toggle                │
-└──────────────────────────────────────┘
-
-┌──────────────────────────────────────┐
-│ HOLIDAY (Excluded)                   │
-│ ┌──────┐                             │
-│ │  15  │                             │
-│ │ ━━━  │ ← Red underline            │
-│ └──────┘                             │
-│ Normal background, special underline │
-└──────────────────────────────────────┘
-
-┌──────────────────────────────────────┐
-│ WEEKEND (Excluded)                   │
-│ ┌──────┐                             │
-│ │  15  │ ← Grayed out               │
-│ │      │   No interaction           │
-│ └──────┘                             │
-│ Gray background, not clickable       │
-└──────────────────────────────────────┘
+Avg per week = In Office ÷ Work-day weekdays × 5      (target: 2.0)
+Rate         = In Office ÷ Work Days × 100%
 ```
 
-## 🎨 Color Scheme
+> **HR weeks:** a whole Sun–Sat week is assigned to the month/quarter that contains
+> that week's **Wednesday**, so a month's grid and totals can include a few days
+> from the neighboring calendar month. Such days are tagged in their tooltip.
 
+## Projected Values
+When you have **planned** future days (📅), month and quarter cards show two numbers,
+`actual / projected`, so you can preview the impact of your plans. Planned days are
+automatically converted to In Office once the date arrives.
+
+## Color Palette
 ```
-┌─────────────────────────────────────────────┐
-│ ATTENDANCE APP COLOR PALETTE                │
-├─────────────────────────────────────────────┤
-│                                             │
-│ 🟢 GREEN (#10b981)                          │
-│    Present Days, Success                    │
-│    ████████                                 │
-│                                             │
-│ 🔴 RED (#ef4444)                            │
-│    Absent Days, Holidays                    │
-│    ████████                                 │
-│                                             │
-│ 🟠 ORANGE (#f59e0b)                         │
-│    Holidays, Warnings                       │
-│    ████████                                 │
-│                                             │
-│ 🟣 PURPLE (#8b5cf6)                         │
-│    Vacation/OOO, Excluded                   │
-│    ████████                                 │
-│                                             │
-│ 🔵 BLUE (#3b82f6)                           │
-│    Work Days, Information                   │
-│    ████████                                 │
-│                                             │
-│ ⚫ GRAY (#9ca3af)                           │
-│    Weekends, Disabled                       │
-│    ████████                                 │
-│                                             │
-└─────────────────────────────────────────────┘
+🟢 Green   — In Office / success
+🟣 Purple  — Out of Office / excluded   (#8b5cf6)
+🔵 Blue    — Planned (dashed) / Work Days / info   (#4fc3f7)
+🔴 Red     — Holidays / low average
+⚫ Gray    — Weekends / disabled
 ```
 
-## 📊 Statistics Layout
-
-### Year Statistics Bar
+## Toolbar
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ YEAR STATISTICS (2025)                                                      │
-├──────────┬──────────┬──────────┬──────────┬──────────┬──────────────────┤
-│ Present  │ Absent   │ Holidays │Vacation  │Work Days │ Attendance Rate   │
-├──────────┼──────────┼──────────┼──────────┼──────────┼──────────────────┤
-│   180    │    40    │    10    │    5     │   225    │      80.0%        │
-│   🟢     │    🔴    │    🟠    │    🟣    │    🔵    │      🟣          │
-│          │          │          │          │          │                   │
-│ Days     │ Days     │ Federal  │ Vacation/│ Weekdays │ Present/Work      │
-│ Present  │ Absent   │ Holidays │   OOO    │- Excluded│ Days              │
-└──────────┴──────────┴──────────┴──────────┴──────────┴──────────────────┘
+[ Save ]  [ Import JSON ]  [ Export JSON ]  [ Import CSV ]  [ Export CSV ]
 ```
-
-### Month Statistics
-```
-┌─────────────────────────────────────────────────────────────┐
-│ OCTOBER 2025                                                │
-├────┬────┬────┬────┬────┬────┬────┐
-│ Su │ Mo │ Tu │ We │ Th │ Fr │ Sa │
-│    │    │    │ ✓  │ ✓  │🏖️  │    │  [Calendar Days]
-│    │    │    │    │    │    │    │
-└────┴────┴────┴────┴────┴────┴────┘
-│                                                             │
-│ ┌────────┬────────┬────────┬────────┬────────┬────────┐   │
-│ │Present │Work Dys│Holidays│Vacation│  Rate  │Avg/Week│   │
-│ ├────────┼────────┼────────┼────────┼────────┼────────┤   │
-│ │   15   │   19   │   1    │   2    │ 78.9%  │  3.95  │   │
-│ │   🟢   │   🔵   │   🟠   │   🟣   │   🟣   │   🟢   │   │
-│ └────────┴────────┴────────┴────────┴────────┴────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## 🖱️ Interaction Guide
-
-### Mouse Actions
-```
-┌─────────────────────────────────────────────────────┐
-│                                                     │
-│  ┌──────┐     LEFT CLICK                           │
-│  │  15  │  ─────────────► Toggle Present/Absent    │
-│  └──────┘                  (Green checkmark ✓)     │
-│                                                     │
-│                                                     │
-│  ┌──────┐     RIGHT CLICK                          │
-│  │  15  │  ─────────────► Toggle Vacation/OOO      │
-│  └──────┘                  (Purple, beach 🏖️)      │
-│                                                     │
-│                                                     │
-│  ┌──────┐     HOVER                                │
-│  │  15  │  ─────────────► Show Tooltip             │
-│  └──────┘                  (Status/Reason)         │
-│     ↑                                               │
-│     └─ Tooltip: "Vacation/OOO"                     │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-### Touch/Mobile Actions
-```
-┌─────────────────────────────────────────────────────┐
-│                                                     │
-│  ┌──────┐     TAP                                  │
-│  │  15  │  ─────────────► Toggle Present/Absent    │
-│  └──────┘                                           │
-│                                                     │
-│                                                     │
-│  ┌──────┐     LONG PRESS                           │
-│  │  15  │  ─────────────► Toggle Vacation/OOO      │
-│  └──────┘                  (Context menu)          │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-```
-
-## 📈 Calculation Flow
-
-### Visual Calculation
-```
-┌─────────────────────────────────────────────────────────┐
-│ TOTAL WEEKDAYS IN OCTOBER                              │
-│ ████████████████████ (23 days)                         │
-│                                                         │
-│ MINUS: US FEDERAL HOLIDAYS                             │
-│ ████████████████████ (23 - 1 = 22)                     │
-│ ──                                                      │
-│                                                         │
-│ MINUS: VACATION/OOO                                    │
-│ ████████████████████ (22 - 2 = 20)                     │
-│ ─────                                                   │
-│                                                         │
-│ = WORK DAYS                                            │
-│ ███████████████ (20 days)                              │
-│                                                         │
-│ OF WHICH:                                              │
-│ Present:  ████████████ (15 days) 🟢                    │
-│ Absent:   █████ (5 days) 🔴                            │
-│                                                         │
-│ ATTENDANCE RATE = 15 / 20 = 75.0%                     │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Comparison Chart
-```
-┌───────────────────────────────────────────────────────────┐
-│ WITHOUT VACATION TRACKING   │ WITH VACATION TRACKING      │
-├─────────────────────────────┼─────────────────────────────┤
-│ Work Days: 22              │ Work Days: 20                │
-│ ████████████████████████   │ ████████████████████         │
-│                            │                              │
-│ Present: 15                │ Present: 15                  │
-│ ███████████████            │ ███████████████              │
-│                            │                              │
-│ Absent: 7                  │ Absent: 5                    │
-│ ███████                    │ █████                        │
-│                            │                              │
-│ Rate: 15/22 = 68.2%        │ Rate: 15/20 = 75.0%          │
-│                            │                              │
-│ Status: 🔴 Needs Work      │ Status: 🟢 Good              │
-└─────────────────────────────┴─────────────────────────────┘
-```
-
-## 📱 Responsive Design
-
-### Desktop View (1920x1080)
-```
-┌──────────────────────────────────────────────────────┐
-│ Header: Attendance Calendar                          │
-├────────┬────────┬────────┬────────┬────────┬────────┤
-│ Present│ Absent │Holidays│Vacation│Work Dys│  Rate  │
-├────────┴────────┴────────┴────────┴────────┴────────┤
-│                                                      │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│ │ January  │ │ February │ │ March    │            │
-│ │ [Cal]    │ │ [Cal]    │ │ [Cal]    │            │
-│ └──────────┘ └──────────┘ └──────────┘            │
-│                                                      │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│ │ April    │ │ May      │ │ June     │            │
-│ │ [Cal]    │ │ [Cal]    │ │ [Cal]    │            │
-│ └──────────┘ └──────────┘ └──────────┘            │
-│                                                      │
-└──────────────────────────────────────────────────────┘
-```
-
-### Mobile View (375x667)
-```
-┌────────────────────┐
-│ Attendance 2025    │
-├────────────────────┤
-│ Stats (Scrollable) │
-│ ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ │
-├────────────────────┤
-│                    │
-│ ┌────────────────┐ │
-│ │ October 2025   │ │
-│ │                │ │
-│ │ [Calendar]     │ │
-│ │                │ │
-│ │ [Statistics]   │ │
-│ └────────────────┘ │
-│                    │
-│ ▼ Scroll for more │
-│                    │
-└────────────────────┘
-```
-
-## 🎯 User Journey
-
-### Complete Workflow
-```
-1. USER OPENS APP
-   ↓
-   [Calendar Displayed]
-   
-2. USER PLANS VACATION
-   ↓
-   Navigate to vacation dates
-   ↓
-   RIGHT-CLICK each weekday
-   ↓
-   Dates turn PURPLE 🟣 with 🏖️
-   ↓
-   Auto-saved to localStorage
-   
-3. STATISTICS UPDATE
-   ↓
-   Work Days: 230 → 225 (5 excluded)
-   Rate: 78.3% → 80.0% (more accurate)
-   
-4. DURING VACATION
-   ↓
-   No need to mark anything
-   ↓
-   Dates already excluded
-   
-5. AFTER VACATION
-   ↓
-   Continue marking present days normally
-   ↓
-   Vacation days remain excluded
-   
-6. EXPORT DATA
-   ↓
-   JSON includes vacation dates
-   ↓
-   CSV shows "Excluded" status
-   ↓
-   Share with manager/HR
-```
-
-## ✅ Quality Checklist
-
-```
-┌────────────────────────────────────────────────────┐
-│ FEATURE QUALITY CHECKLIST                          │
-├────────────────────────────────────────────────────┤
-│ ✅ Visual Design                                   │
-│    ✅ Purple color theme                           │
-│    ✅ Beach emoji indicator                        │
-│    ✅ Strike-through text                          │
-│    ✅ Consistent with existing UI                  │
-│                                                    │
-│ ✅ Functionality                                   │
-│    ✅ Right-click toggles exclusion                │
-│    ✅ Auto-saves to localStorage                   │
-│    ✅ Updates all statistics                       │
-│    ✅ Exports include excluded dates               │
-│                                                    │
-│ ✅ User Experience                                 │
-│    ✅ Intuitive interaction                        │
-│    ✅ Clear visual feedback                        │
-│    ✅ Helpful instructions                         │
-│    ✅ Hover tooltips                               │
-│                                                    │
-│ ✅ Data Integrity                                  │
-│    ✅ Backwards compatible                         │
-│    ✅ No data loss                                 │
-│    ✅ Import/export working                        │
-│    ✅ Auto-save reliable                           │
-│                                                    │
-│ ✅ Documentation                                   │
-│    ✅ Feature guide complete                       │
-│    ✅ Quick start guide                            │
-│    ✅ Technical summary                            │
-│    ✅ Updated README                               │
-│                                                    │
-│ ✅ Testing                                         │
-│    ✅ Build successful                             │
-│    ✅ No errors                                    │
-│    ✅ TypeScript validated                         │
-│    ✅ HTML validated                               │
-└────────────────────────────────────────────────────┘
-
-OVERALL STATUS: ✅ COMPLETE AND PRODUCTION READY
-```
-
----
-
-**End of Visual Guide** 🎉

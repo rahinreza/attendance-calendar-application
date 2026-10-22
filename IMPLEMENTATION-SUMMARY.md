@@ -1,5 +1,9 @@
 # Implementation Summary: Vacation/OOO Feature
 
+> ℹ️ **Accuracy note (current build).** The excluded indicator emoji is **💼**
+> (not 🏖️); the stored reason value is **`Out of Office`**. The purple theme
+> (#8b5cf6) and strike-through styling described below are still accurate.
+
 ## Date: October 17, 2025
 
 ## Overview

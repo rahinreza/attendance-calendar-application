@@ -4,27 +4,27 @@ A modern, responsive attendance tracking application for personal use.
 
 **Created by Rahin Reza and Copilot**
 
-## 🚀 AWS S3 Deployment Ready
+## Overview
 
-This app is **optimized for AWS S3 static hosting** - deploy in minutes with zero backend costs!
+A single-page Angular 20 app for tracking office attendance across a full year. Mark the days you were in the office, plan future days, and track out-of-office / vacation time, with per-month, per-quarter, and yearly statistics geared toward a target of **2.0 in-office days per week**.
 
-📖 **Quick Deploy**: See `S3-QUICK-START.md`  
-📚 **Full Guide**: See `S3-DEPLOYMENT-GUIDE.md`
+All data is stored **locally in your browser** (`localStorage`) — there is no backend, account, or cloud sync. Use the JSON / CSV export & import buttons to back up or move your data between browsers.
 
 ## Features
 
-✅ **Year-round Calendar** - View and manage all 12 months  
-✅ **Mark Attendance** - Click any weekday to mark as present  
-✅ **Out of Office Tracking** - Right-click to exclude dates from calculations  
-✅ **Instant Feedback** - Popup notifications show action results at click location  
-✅ **US Federal Holidays** - Pre-loaded with automatic detection  
-✅ **Statistics Dashboard** - Monthly and quarterly attendance rates  
-✅ **Username Management** - Personalize whose attendance you're tracking  
-✅ **Export/Import** - JSON and Excel (CSV) formats  
-✅ **Auto-Save** - Changes saved automatically to localStorage  
-✅ **Dark Navy Theme** - Beautiful, compact design  
-✅ **Local Storage** - All data stays on your device  
-✅ **S3 Static Hosting** - Deploy to AWS S3 for pennies/month
+✅ **Year-round Calendar** - All 12 months on one page, grouped by quarter  
+✅ **Mark In-Office Days** - Left-click a past/today weekday to toggle "In Office" (✓)  
+✅ **Plan Future Days** - Left-click a future weekday to mark a planned day (📅)  
+✅ **Out of Office / Vacation** - Right-click any weekday to exclude it from calculations (💼)  
+✅ **Projected Stats** - Month/quarter cards show actual vs. projected values when planned days exist  
+✅ **Instant Feedback** - Popup notifications show each action at the click location  
+✅ **US Federal Holidays** - Auto-computed per year with observed-day shifting  
+✅ **HR-Week Accounting** - Whole Sun–Sat weeks count toward the month/quarter of that week's Wednesday  
+✅ **Statistics Dashboard** - Per-month, per-quarter, and yearly rates and averages  
+✅ **Username** - Label whose attendance you're tracking  
+✅ **Export / Import** - JSON and CSV (Excel) formats  
+✅ **Auto-Save** - Every change is saved to `localStorage` automatically  
+✅ **Server-Side Rendering** - Angular SSR (Express) with prerendering
 
 ## Quick Start
 
@@ -40,39 +40,44 @@ Once the server is running, open your browser and navigate to `http://localhost:
 
 ## Usage
 
-### Marking Attendance
-- **Left-click** on any weekday to mark as present
+### Marking In-Office Days
+- **Left-click** a past or current weekday to toggle **In Office** (green ✓)
 - Click again to unmark
-- Green checkmark (✓) indicates present
-- Unmarked weekdays are counted as absent
-- **Popup notification** appears showing the action
+- Unmarked weekdays count as **Remote**
+- A popup ("In Office ✓" / "Unmarked") appears at the click location
 
-### Marking Vacation/Out of Office
-- **Right-click** on any weekday to mark as Vacation/OOO
-- Right-click again to remove the marking
-- Purple border with beach emoji (🏖️) indicates excluded dates
-- These dates are completely excluded from all attendance calculations
-- **Popup notification** confirms the change
+### Planning Future Days
+- **Left-click** a **future** weekday to mark it **Planned** (📅, dashed blue border)
+- Click again to remove the plan ("Planned ✓📅" / "Removed Plan 📅")
+- Month/quarter cards show projected values (actual / projected) while planned days exist
+- When a planned day arrives, it is automatically converted to **In Office**
 
-### Visual Feedback
-- 🟢 **Green popup**: "Marked Present ✓" or "Marked as Vacation/OOO 🏖️"
-- 🔵 **Blue popup**: "Unmarked" or "Removed Vacation/OOO"
-- 🟠 **Orange popup**: "Date is marked as Vacation/OOO" (warning)
+### Marking Out of Office / Vacation
+- **Right-click** any weekday to toggle **Out of Office** (💼, purple, strike-through)
+- Right-click again to remove it ("Out of Office 💼" / "Removed 💼")
+- Out-of-office days are excluded from all attendance calculations
+- The stored reason defaults to `Out of Office`
+
+### Visual Feedback (popups)
+- 🟢 **Green**: "In Office ✓", "Out of Office 💼", "Planned ✓📅"
+- 🔵 **Blue**: "Unmarked", "Removed 💼", "Removed Plan 📅", "Auto-saved"
+- 🟠 **Orange**: "Already Out of Office 💼" (when left-clicking an excluded day)
 
 ### Key Indicators
-- 🟢 **Green checkmark (✓)**: Present day
-- 🟣 **Purple with 🏖️**: Vacation/OOO (excluded from calculations)
-- 🔴 **Red underline**: US Federal Holiday (excluded from calculations)
-- ⚫ **Unmarked**: Absent day
+- 🟢 **Green ✓**: In office
+- 🟣 **Purple 💼 (strike-through)**: Out of office (excluded)
+- 📅 **Dashed blue border**: Planned future day
+- 🔴 **Red underline**: US Federal holiday (excluded)
+- ⚫ **Unmarked weekday**: Remote
 - 🔵 **Blue border**: Today
 
 ### Statistics
-All statistics automatically adjust to exclude:
+All statistics automatically exclude:
 - Weekends
-- US Federal Holidays  
-- Vacation/OOO days
+- US Federal Holidays
+- Out-of-office / vacation days
 
-This gives you an accurate attendance rate based only on actual work days.
+Weeks are attributed to the month/quarter containing that week's **Wednesday** (HR-week accounting), so a month's totals can include a few days from the adjacent calendar month.
 
 ## Code scaffolding
 
@@ -120,12 +125,27 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 
-### Feature Documentation
+### Documentation Status
 
-- **[CLICK-POPUP-FEATURE.md](./CLICK-POPUP-FEATURE.md)** - Click popup notification system guide
-- **[CLICK-POPUP-DEMO.md](./CLICK-POPUP-DEMO.md)** - Visual demo of popup notifications
-- **[VACATION-OOO-FEATURE.md](./VACATION-OOO-FEATURE.md)** - Detailed guide on using the Vacation/Out of Office tracking feature
-- **[MULTI-USER-SETUP.md](./MULTI-USER-SETUP.md)** - Setup instructions for multi-user file-based storage
-- **[FILE-LOADING-GUIDE.md](./FILE-LOADING-GUIDE.md)** - Guide for loading attendance data from files
-- **[AWS-ECS-DEPLOYMENT.md](./AWS-ECS-DEPLOYMENT.md)** - AWS deployment instructions
-- **[CLOUD-SYNC-SUMMARY.md](./CLOUD-SYNC-SUMMARY.md)** - Cloud synchronization feature overview
+> ℹ️ This README is the source of truth. The docs below reflect the current build.
+
+**Guides**
+- **[VACATION-OOO-FEATURE.md](./VACATION-OOO-FEATURE.md)** – Out-of-office / vacation tracking
+- **[VACATION-QUICK-START.md](./VACATION-QUICK-START.md)** – One-page cheat sheet for the core actions
+- **[FUTURE-ATTENDANCE-FEATURE.md](./FUTURE-ATTENDANCE-FEATURE.md)** – Planned future days & projected stats
+- **[CLICK-POPUP-FEATURE.md](./CLICK-POPUP-FEATURE.md)** / **[CLICK-POPUP-DEMO.md](./CLICK-POPUP-DEMO.md)** – Popup notifications
+- **[VISUAL-GUIDE.md](./VISUAL-GUIDE.md)** – Visual reference for the UI
+- **[FILE-LOADING-GUIDE.md](./FILE-LOADING-GUIDE.md)** – Importing, exporting, and backing up data
+- **[PROJECTED-AVERAGES-ENHANCEMENT.md](./PROJECTED-AVERAGES-ENHANCEMENT.md)** – Projected averages
+- **[PERFORMANCE-OPTIMIZATION.md](./PERFORMANCE-OPTIMIZATION.md)** – Caching strategy
+
+**Deployment**
+- **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** – CI/CD: tests (80% coverage gate) then deploy to S3 static hosting; one-time IAM setup in [infra/github-deploy-role.yml](./infra/github-deploy-role.yml)
+- **[WIFI-AUTOMARK-SETUP.md](./WIFI-AUTOMARK-SETUP.md)** – macOS WiFi auto-open helper (the app currently ignores the `automark` URL params)
+
+**Historical (kept for reference; see the note at the top of each)**
+- **[CHANGELOG.md](./CHANGELOG.md)**, **[IMPLEMENTATION-SUMMARY.md](./IMPLEMENTATION-SUMMARY.md)**, **[CALCULATION-FIX.md](./CALCULATION-FIX.md)**
+
+> Removed: the former `CLOUD-SYNC-SUMMARY.md` (Firebase) and `MULTI-USER-SETUP.md`
+> (`server-api.js` backend) described features that were never implemented — data is
+> stored only in the browser's `localStorage`.

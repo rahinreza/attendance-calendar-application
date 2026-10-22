@@ -42,6 +42,10 @@ export class AppComponent implements OnInit {
   // Cache for calendar days to avoid recalculation
   private calendarDaysCache: Map<number, (Date | null)[]> = new Map();
   
+  // Cache for HR-month day grouping (whole Sun–Sat weeks assigned to the month
+  // that contains the majority of the week's days, i.e. the week's Wednesday)
+  private hrMonthDaysCache: Map<number, Date[]> = new Map();
+  
   // Cache today's date (updated once per component lifecycle)
   private todayCache: Date = new Date();
   private todayKey: string = '';
@@ -216,11 +220,11 @@ export class AppComponent implements OnInit {
   setHolidaysForYear(year: number) {
     this.holidays.clear();
     
-    // Fixed date holidays
-    this.holidays.set(`${year}-0-1`, "New Year's Day");
-    this.holidays.set(`${year}-5-19`, "Juneteenth");
-    this.holidays.set(`${year}-6-4`, "Independence Day");
-    this.holidays.set(`${year}-11-25`, "Christmas Day");
+    // Fixed date holidays (shifted to the federal observed day when they land on a weekend)
+    this.addObservedHoliday(year, 0, 1, "New Year's Day");
+    this.addObservedHoliday(year, 5, 19, "Juneteenth");
+    this.addObservedHoliday(year, 6, 4, "Independence Day");
+    this.addObservedHoliday(year, 11, 25, "Christmas Day");
     
     // MLK Day - Third Monday in January
     const mlkDay = this.getNthWeekdayOfMonth(year, 0, 1, 3);
@@ -237,6 +241,25 @@ export class AppComponent implements OnInit {
     // Thanksgiving - Fourth Thursday in November
     const thanksgiving = this.getNthWeekdayOfMonth(year, 10, 4, 4);
     this.holidays.set(this.getDateKey(thanksgiving), "Thanksgiving");
+  }
+  
+  /**
+   * Registers a fixed-date holiday on its federal "observed" day: when the actual
+   * date falls on a Saturday it is observed the preceding Friday, and when it falls
+   * on a Sunday it is observed the following Monday (e.g. July 4, 2026 is a Saturday,
+   * so Independence Day is observed on Friday, July 3, 2026).
+   */
+  private addObservedHoliday(year: number, month: number, day: number, name: string) {
+    const actual = new Date(year, month, day);
+    const dayOfWeek = actual.getDay();
+    let observed = actual;
+    if (dayOfWeek === 6) {
+      observed = new Date(year, month, day - 1); // Saturday -> Friday
+    } else if (dayOfWeek === 0) {
+      observed = new Date(year, month, day + 1); // Sunday -> Monday
+    }
+    const label = observed.getTime() === actual.getTime() ? name : `${name} (Observed)`;
+    this.holidays.set(this.getDateKey(observed), label);
   }
   
   getNthWeekdayOfMonth(year: number, month: number, weekday: number, n: number): Date {
@@ -808,10 +831,83 @@ export class AppComponent implements OnInit {
     return Array.from({ length: 12 }, (_, i) => i);
   }
   
+  /**
+   * Returns the Wednesday of the Sun–Saturday week that contains the given date.
+   * HR assigns each whole week to the month/quarter that owns the majority of the
+   * week's days, which is equivalent to the month containing the week's Wednesday.
+   */
+  private getWeekAnchor(date: Date): Date {
+    const anchor = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    // getDay(): 0 = Sunday ... 6 = Saturday. Wednesday is offset (3 - day) from the date.
+    anchor.setDate(anchor.getDate() + (3 - anchor.getDay()));
+    return anchor;
+  }
+  
+  /** The HR month (0-based) a date belongs to, based on its week's Wednesday. */
+  getHRMonth(date: Date): number {
+    return this.getWeekAnchor(date).getMonth();
+  }
+  
+  /** The HR year a date belongs to, based on its week's Wednesday. */
+  getHRYear(date: Date): number {
+    return this.getWeekAnchor(date).getFullYear();
+  }
+  
+  /**
+   * All calendar dates that HR attributes to the given month of the current year.
+   * A date belongs to the month whose Wednesday-anchored week it falls in, so this
+   * list can include days from the adjacent calendar month (e.g. May owns 5/3–5/30,
+   * while 5/1–5/2 belong to April and 5/31 belongs to June).
+   */
+  getHRMonthDays(month: number): Date[] {
+    if (this.hrMonthDaysCache.has(month)) {
+      return this.hrMonthDaysCache.get(month)!;
+    }
+    
+    const result: Date[] = [];
+    // Scan a padded window so weeks spilling in from adjacent months are covered.
+    const cursor = new Date(this.currentYear, month, 1);
+    cursor.setDate(cursor.getDate() - 7);
+    const end = new Date(this.currentYear, month + 1, 0);
+    end.setDate(end.getDate() + 7);
+    
+    while (cursor <= end) {
+      const anchor = this.getWeekAnchor(cursor);
+      if (anchor.getMonth() === month && anchor.getFullYear() === this.currentYear) {
+        result.push(new Date(cursor));
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    
+    this.hrMonthDaysCache.set(month, result);
+    return result;
+  }
+  
+  /**
+   * Tooltip for a calendar cell. Notes when a day belongs to a neighboring
+   * calendar month but is counted in the month whose HR week it falls in.
+   */
+  getDayTitle(date: Date | null, month: number): string {
+    if (!date) return '';
+    const parts: string[] = [];
+    if (date.getMonth() !== month) {
+      parts.push(`${this.monthNames[date.getMonth()]} ${date.getDate()} — counted in ${this.monthNames[month]}`);
+    }
+    if (this.isHoliday(date)) {
+      parts.push(this.getHolidayName(date));
+    } else if (this.isExcluded(date)) {
+      parts.push('Out of Office');
+    } else if (this.isPlanned(date) && this.isFuture(date)) {
+      parts.push('Planned');
+    }
+    return parts.join(' • ');
+  }
+  
   previousYear() {
     this.currentYear--;
     this.setHolidaysForYear(this.currentYear);
     this.calendarDaysCache.clear();
+    this.hrMonthDaysCache.clear();
     this.invalidateStatsCache();
     this.saveAttendanceData(false);
     
@@ -830,6 +926,7 @@ export class AppComponent implements OnInit {
     this.currentYear++;
     this.setHolidaysForYear(this.currentYear);
     this.calendarDaysCache.clear();
+    this.hrMonthDaysCache.clear();
     this.invalidateStatsCache();
     this.saveAttendanceData(false);
     
@@ -1017,7 +1114,7 @@ export class AppComponent implements OnInit {
     let holidayCount = 0;
     let excludedCount = 0;
     
-    const days = this.getCalendarDays(month);
+    const days = this.getHRMonthDays(month);
     const today = this.todayCache;
     
     days.forEach(date => {
@@ -1119,8 +1216,8 @@ export class AppComponent implements OnInit {
     const stats = this.getMonthStats(month);
     
     // Excel formula: =SUM(Present) / COUNT(Weekdays only, no weekends) * 5
-    // Count only weekdays in the month (excluding weekends)
-    const days = this.getCalendarDays(month);
+    // Count only weekdays in the HR month (excluding weekends)
+    const days = this.getHRMonthDays(month);
     let totalWeekdays = 0;
     
     for (const date of days) {
@@ -1144,7 +1241,7 @@ export class AppComponent implements OnInit {
     // Calculate for all months in the quarter
     for (let month = quarterStartMonth; month <= quarterEndMonth; month++) {
       const monthStats = this.getMonthStats(month);
-      const days = this.getCalendarDays(month);
+      const days = this.getHRMonthDays(month);
       
       // Use projected or actual stats based on parameter
       presentDays += useProjected ? monthStats.projectedPresentDays : monthStats.presentDays;
@@ -1333,8 +1430,8 @@ export class AppComponent implements OnInit {
     if (this.currentYear < currentYear) return false;
     if (this.currentYear === currentYear && month < currentMonth) return false;
     
-    // Check if any planned dates exist in this month
-    const days = this.getCalendarDays(month);
+    // Check if any planned dates exist in this HR month
+    const days = this.getHRMonthDays(month);
     for (const date of days) {
       if (date && date > today && this.isPlanned(date)) {
         return true;
@@ -1359,7 +1456,7 @@ export class AppComponent implements OnInit {
     const quarterEndMonth = quarterStartMonth + 2;
     
     for (let month = quarterStartMonth; month <= quarterEndMonth; month++) {
-      const days = this.getCalendarDays(month);
+      const days = this.getHRMonthDays(month);
       for (const date of days) {
         if (date && date > today && this.isPlanned(date)) {
           return true;

@@ -908,6 +908,18 @@
 }
 
 
+/* Days from a neighboring calendar month that belong to this month's HR week.
+   These days DO count toward this month, so keep them looking active (a subtle
+   background tint only) rather than dimmed like holidays/excluded days. */
+.mini-calendar-day.other-month:not(.marked-present):not(.excluded):not(.planned):not(.today):not(.weekend) {
+  background: #10263d;
+}
+
+.mini-calendar-day.other-month .mini-day-number {
+  color: #e3f2fd;
+}
+
+
 .mini-calendar-day.weekend {
   background: #0a1929;
   opacity: 0.4;

@@ -1,0 +1,108 @@
+name: test-and-deploy
+
+on:
+  push:
+    branches: [main]
+    # Only run when app-related files change.
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'angular.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig*.json'
+      - 'karma.conf.js'
+      - '.github/workflows/deploy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'angular.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig*.json'
+      - 'karma.conf.js'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Install Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run unit tests (fails below 80% coverage)
+        run: npm run test:ci
+        env:
+          CHROME_BIN: ${{ steps.chrome.outputs.chrome-path }}
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/attendance-app
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: dist/attendance-app/browser
+          if-no-files-found: error
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      BUCKET: ${{ vars.S3_BUCKET || 'rahin-attendance-app' }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN || 'arn:aws:iam::107456217987:role/attendance-calendar-application-github-deploy' }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Upload hashed JS/CSS (long cache)
+        run: |
+          aws s3 sync site "s3://$BUCKET" \
+            --exclude "*" --include "*.js" --include "*.css" \
+            --cache-control "public,max-age=31536000,immutable"
+
+      - name: Upload index.html and other files (revalidate)
+        run: |
+          aws s3 sync site "s3://$BUCKET" \
+            --exclude "*.js" --exclude "*.css" \
+            --cache-control "no-cache"
+
+      - name: Remove files from previous builds
+        run: aws s3 sync site "s3://$BUCKET" --delete --size-only
